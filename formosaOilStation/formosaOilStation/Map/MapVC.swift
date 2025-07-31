@@ -91,8 +91,7 @@ class MapVC: UIViewController {
         mapView.register(PinMKAView.self, forAnnotationViewWithReuseIdentifier: PinMKAView.reuseID)
         setupMapViewUI()
         mapView.delegate = self
-        putStationMarker()
-        //setupMapViewDelegate()
+        loadingCurrentLoacation()
         // Do any additional setup after loading the view.
     }
     
@@ -143,7 +142,18 @@ class MapVC: UIViewController {
             make.center.equalToSuperview()
         }
         
+    }
+    
+    private func loadingCurrentLoacation() {
         mapView.showsUserLocation = true
+        vm.locationCallBack = { [weak self] currentLocation in
+            let center = CLLocationCoordinate2D(latitude: currentLocation.coordinate.latitude,
+                                                longitude: currentLocation.coordinate.longitude)
+            let span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+            let region = MKCoordinateRegion(center: center, span: span)
+            self?.mapView.setRegion(region, animated: true)
+        }
+        vm.recordLocation()
     }
     
     private func putStationMarker() {
@@ -154,16 +164,7 @@ class MapVC: UIViewController {
         }
         mapView.removeAnnotations(mapView.annotations)
         mapView.addAnnotations(annotations)
-        vm.locationCallBack = { [weak self] _ in
-        }
-        vm.recordLocation()
         
-        guard let coord = MainManager.shared.currentLocation?.coordinate else { return }
-        let center = CLLocationCoordinate2D(latitude: coord.latitude,
-                                            longitude: coord.longitude)
-        let span = MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-        let region = MKCoordinateRegion(center: center, span: span)
-        mapView.setRegion(region, animated: true)
     }
     
     @objc func tapLocationBtn() {
@@ -201,7 +202,18 @@ class MapVC: UIViewController {
 extension MapVC: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        let visibleMapRect = mapView.visibleMapRect
         putStationMarker()
+        let allAnnotations = mapView.annotations
+        // 只保留畫面內的站點
+        let filteredAnnotations = allAnnotations.filter { annotation in
+            let point = MKMapPoint(annotation.coordinate)
+            return visibleMapRect.contains(point)
+        }
+
+        mapView.removeAnnotations(mapView.annotations)
+        mapView.addAnnotations(filteredAnnotations)
+        
     }
     
     func navigateTo(_ coordinate: CLLocationCoordinate2D) {

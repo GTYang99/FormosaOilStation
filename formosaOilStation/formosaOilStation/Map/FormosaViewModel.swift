@@ -108,15 +108,6 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
             }
             return true
         })
-        
-        /*
-        let result = data?.filter({ feature in
-            brands.allSatisfy { brand in
-                guard let properties = feature.properties else { return false }
-                return ((properties.站名?.contains(brand)) != nil)
-            }
-        })
-         */
     }
 }
 
