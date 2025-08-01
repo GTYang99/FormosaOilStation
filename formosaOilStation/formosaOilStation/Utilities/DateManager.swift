@@ -27,8 +27,12 @@ class DateManager {
         return dateFormatter.string(from: time)
     }
     
-    func fomatterString(time: Date) -> String {
-        dateFormatter.dateFormat = "HH:mm"
-        return dateFormatter.string(from: time)
+    
+    func stringToTime(from timeString: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        formatter.locale = Locale(identifier: "zh_TW")
+        formatter.timeZone = TimeZone.current
+        return formatter.date(from: timeString)
     }
 }

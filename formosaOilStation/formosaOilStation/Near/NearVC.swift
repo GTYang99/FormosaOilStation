@@ -11,9 +11,12 @@ import CoreLocation
 
 class NearVC: UIViewController {
     let tbNearby = UITableView()
-    var data: [Feature]?
     let vm = FormosaViewModel()
-    var distanceFeatures: [FeatureWithDistance]?
+    var distanceFeatures: [FeatureWithDistance]? {
+        didSet {
+            tbNearby.reloadData()
+        }
+    }
     let detailView = NearStationDetailVC()
 
     override func viewDidLoad() {
@@ -49,17 +52,9 @@ class NearVC: UIViewController {
             guard let self = self
                 , let features = oilStations.features else { return }
             let sortedFeatures = vm.sortFeaturesByDistance(features)
+            let distanceFeatures = vm.distanceFeatures(sortedFeatures, near: 10)
             
-            let distanceFeatures = sortedFeatures.compactMap { feature -> FeatureWithDistance? in
-                guard let coord = feature.coordinate,
-                      let userLoc = self.vm.currentLocation else { return nil }
-
-                let stationLoc = CLLocation(latitude: coord.latitude, longitude: coord.longitude)
-                let distance = userLoc.distance(from: stationLoc)
-                return FeatureWithDistance(feature: feature, distance: distance)
-            }
             self.distanceFeatures = distanceFeatures
-            self.data = sortedFeatures
             self.tbNearby.reloadData()
         }
         vm.recordLocation()
@@ -83,13 +78,15 @@ class NearVC: UIViewController {
 
 extension NearVC: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        guard let data = data else { return 0 }
+//        guard let data = data else { return 0 }
+        guard let data = distanceFeatures else { return 0 }
         return data.count ?? 1
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let feature = data?[indexPath.row] else { return UITableViewCell() }
+        guard let data = distanceFeatures  else { return UITableViewCell() }
+        let feature = data[indexPath.row].feature
         let cell = tableView.dequeueReusableCell(withIdentifier: "NearStationCell", for: indexPath) as! NearStationCell
         cell.configure(with: feature)
         let distance = (distanceFeatures?[indexPath.row].distance ?? 0) / 1000.0
@@ -119,7 +116,8 @@ extension NearVC: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        guard let dataInfo = self.data?[indexPath.row] else { return }
+        //guard let dataInfo = self.data?[indexPath.row] else { return }
+        guard let dataInfo = self.distanceFeatures?[indexPath.row].feature else { return }
         
         let detailVC = NearStationDetailVC()
         detailVC.dataInfo = dataInfo

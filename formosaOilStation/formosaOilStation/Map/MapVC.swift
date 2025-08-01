@@ -98,6 +98,12 @@ class MapVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
+        vm.filterCallBack = { [weak self] filterData in
+            guard let annotationsToRemove = self?.mapView.annotations else { return }
+            print(filterData)
+            let filterFeatures = filterData.compactMap { $0.feature }
+            self?.putStationMarker(filterFeatures)
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -156,12 +162,16 @@ class MapVC: UIViewController {
         vm.recordLocation()
     }
     
-    private func putStationMarker() {
-        let annotations = vm.parserGeoJSONPoint()
+    private func putStationMarker(_ feature: [Feature]? = nil) {
+        var annotations = [StagtionMKA]()
         
-        guard let annotations, !annotations.isEmpty else {
-            return
+        if let feature = feature {
+            annotations = vm.transToMKA(feature) ?? []
+        } else {
+            annotations = vm.parserGeoJSONPoint() ?? []
         }
+        
+        guard !annotations.isEmpty else { return }
         mapView.removeAnnotations(mapView.annotations)
         mapView.addAnnotations(annotations)
         
@@ -182,7 +192,7 @@ class MapVC: UIViewController {
     }
     
     @objc func tapNearListBtn(){
-        let listVC = OilNearListVC()
+        let listVC = OilNearListVC(viewModel: vm)
         present(listVC, animated: true, completion: nil)
     }
     

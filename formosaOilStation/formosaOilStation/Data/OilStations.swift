@@ -37,6 +37,7 @@ struct Properties: Codable {
     let 營業時間: String?
     let 類型: [類型]?
     let the98無鉛, the95Plus無鉛, the92無鉛, 超級柴油: Bool?
+    let fuel98, fuel95, fuel92: Bool?
     let 洗車服務, 打氣機, 車用尿素水, 台塑石油Pay: Bool?
     let 帝雉卡儲值, 國旅卡, 悠遊卡, 一卡通: Bool?
     let 愛金卡, pi拍錢包, 街口支付, linePay: Bool?
@@ -44,9 +45,9 @@ struct Properties: Codable {
 
     enum CodingKeys: String, CodingKey {
         case 城市, 站名, 地址, 電話, 營業時間, 類型
-        case the98無鉛 = "98無鉛"
-        case the95Plus無鉛 = "95Plus無鉛"
-        case the92無鉛 = "92無鉛"
+        case the98無鉛, fuel98 = "98無鉛"
+        case the95Plus無鉛, fuel95 = "95Plus無鉛"
+        case the92無鉛, fuel92 = "92無鉛"
         case 超級柴油, 洗車服務, 打氣機, 車用尿素水
         case 台塑石油Pay = "台塑石油PAY"
         case 帝雉卡儲值, 國旅卡, 悠遊卡, 一卡通, 愛金卡

@@ -268,12 +268,21 @@ class OilNearListVC: UIViewController {
     }()
     
     //MARK: Data
-    var filterBrand: [String] = []
+    var filterBrands: [加油站廠牌] = []
     var filterFuelType: [String] = []
-    var filterTime: [String] = ["", ""]
+    var filterTime: [Date?] = [nil, nil]
     var filterDistance: Double?
-    var viewModel = FormosaViewModel()
-
+    var viewModel: FormosaViewModel?
+    
+    init(viewModel: FormosaViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -424,12 +433,12 @@ class OilNearListVC: UIViewController {
         for btn in btnBrand {
             btn.isSelected = false
         }
-        filterBrand.removeAll()
+        filterBrands.removeAll()
         filterFuelType.removeAll()
         startTF.text = ""
         endTF.text = ""
-        filterTime[0] = ""
-        filterTime[1] = ""
+        filterTime[0] = nil
+        filterTime[1] = nil
         sliderbarDistance.value = 0
         timeSelector(open: false)
     }
@@ -442,15 +451,15 @@ class OilNearListVC: UIViewController {
         sender.isSelected = !sender.isSelected
         switch sender {
         case btnBrand[0]:
-            sender.isSelected ? (filterFuelType.append(加油站廠牌.台亞.rawValue)): (filterFuelType.removeAll{ $0.contains(加油站廠牌.台亞.rawValue) })
+            sender.isSelected ? (filterBrands.append(加油站廠牌.台亞)): (filterBrands.removeAll(where: { $0 == .台亞}))
         case btnBrand[1]:
-            sender.isSelected ? (filterFuelType.append(加油站廠牌.全國.rawValue)): (filterFuelType.removeAll{ $0.contains(加油站廠牌.全國.rawValue) })
+            sender.isSelected ? (filterBrands.append(加油站廠牌.全國)): (filterBrands.removeAll(where: { $0 == .全國}))
         case btnBrand[2]:
-            sender.isSelected ? (filterFuelType.append(加油站廠牌.統一.rawValue)): (filterFuelType.removeAll{ $0.contains(加油站廠牌.統一.rawValue) })
+            sender.isSelected ? (filterBrands.append(加油站廠牌.統一)): (filterBrands.removeAll(where: { $0 == .統一}))
         case btnBrand[3]:
-            sender.isSelected ? (filterFuelType.append(加油站廠牌.福懋.rawValue)): (filterFuelType.removeAll{ $0.contains(加油站廠牌.福懋.rawValue) })
+            sender.isSelected ? (filterBrands.append(加油站廠牌.福懋)): (filterBrands.removeAll(where: { $0 == .福懋}))
         case btnBrand[4]:
-            sender.isSelected ? (filterFuelType.append(加油站廠牌.山隆.rawValue)): (filterFuelType.removeAll{ $0.contains(加油站廠牌.山隆.rawValue) })
+            sender.isSelected ? (filterBrands.append(加油站廠牌.山隆)): (filterBrands.removeAll(where: { $0 == .山隆}))
         default: break
         }
     }
@@ -472,26 +481,26 @@ class OilNearListVC: UIViewController {
     
     @objc func tapTimeButton(_ sender: UIButton) {
         let now = Date()
-        let time = DateManager.shared.timeToString(time: now)
+        //let time = DateManager.shared.timeToString(time: now)
         let nowPlusOne = Calendar.current.date(byAdding: .hour, value: 1, to: now)!
         let oneHourLater = DateManager.shared.timeToString(time: nowPlusOne)
         
         for button in btnTimes {
             button.isSelected = (button == sender)
         }
-        filterTime = ["", ""]
+        filterTime = [nil, nil]
         switch sender {
         case btnTimes[0]:
-            filterTime[1] = sender.isSelected ? time : ""
+            filterTime[1] = sender.isSelected ? now : Date()
             timeSelector(open: false)
         case btnTimes[1]:
             timeSelector(open: false)
             if sender.isSelected {
-                filterTime[0] = time
-                filterTime[1] = oneHourLater
+                filterTime[0] = now
+                filterTime[1] = nowPlusOne
             } else {
-                filterTime[0] = ""
-                filterTime[1] = ""
+                filterTime[0] = nil
+                filterTime[1] = nil
             }
         case btnTimes[2]:
             sender.isSelected ? timeSelector(open: true): timeSelector(open: false)
@@ -503,6 +512,7 @@ class OilNearListVC: UIViewController {
     @objc func sliderbarDistanceValueChanged(_ slider: UISlider) {
         let value: Float = slider.value / 10
         lblDistanceValue.text = String(format: "%.1fkm", value)
+        filterDistance = Double(value)
     }
     
     func timeSelector(open: Bool) {
@@ -550,14 +560,16 @@ class OilNearListVC: UIViewController {
         tf.resignFirstResponder()
         
         if tf == startTF {
-            guard let data = timePicker.onSelectData else { return }
-            startTF.text = timePicker.onSelectData
-            filterTime[0] = data
+            guard let text = timePicker.onSelectData else { return }
+            startTF.text = text
+            let time = DateManager.shared.stringToTime(from: text)
+            filterTime[0] = time
         }
         if tf == endTF {
-            guard let data = timePicker.onSelectData else { return }
-            endTF.text = timePicker.onSelectData
-            filterTime[1] = data
+            guard let text = timePicker.onSelectData else { return }
+            endTF.text = text
+            let time = DateManager.shared.stringToTime(from: text)
+            filterTime[1] = time
         }
         activeTimeTF = nil
         print("\(filterTime)")
@@ -568,8 +580,8 @@ class OilNearListVC: UIViewController {
     }
     
     @objc private func didTapSearchBtn(){
-        viewModel.filter()
-        navigationController?.popViewController(animated: true)
+        viewModel?.filterCondition(brands: filterBrands, fuelType: filterFuelType, time: filterTime, distance: filterDistance ?? 10.0)
+        dismiss(animated: true)
     }
     
 
