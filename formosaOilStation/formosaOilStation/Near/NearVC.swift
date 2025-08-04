@@ -14,10 +14,28 @@ class NearVC: UIViewController {
     let vm = FormosaViewModel()
     var distanceFeatures: [FeatureWithDistance]? {
         didSet {
-            tbNearby.reloadData()
+            DispatchQueue.main.async {
+                self.tbNearby.reloadData()
+            }
         }
     }
     let detailView = NearStationDetailVC()
+    let lbTitle: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 32)
+        return label
+    }()
+    var isNearShown: Bool = true
+    
+    init(title: String? = nil, isNearShown: Bool = true) {
+        self.lbTitle.text = (title != nil) ? title : "Near Station"
+        self.isNearShown = isNearShown
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,40 +44,65 @@ class NearVC: UIViewController {
         tbNearby.delegate = self
         tbNearby.dataSource = self
         tbNearby.dequeueReusableCell(withIdentifier: "NearStationCell")
-        setupTabelView()
+        setupUI()
         tbDataBinding()
     }
     
-    func setupTabelView(){
+    override func viewWillAppear(_ animated: Bool) {
+        tbDataBinding()
+    }
+    
+    func setupUI(){
+        
         tbNearby.register(NearStationCell.self, forCellReuseIdentifier: "NearStationCell")
 
         
+        view.addSubview(lbTitle)
         view.addSubview(tbNearby)
         view.backgroundColor = .white
         
         tbNearby.backgroundColor = .white
         tbNearby.separatorStyle = .none
         
+        lbTitle.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
+            make.leading.trailing.equalToSuperview().inset(16)
+        }
+        
         tbNearby.snp.makeConstraints { make in
+            make.top.equalTo(lbTitle.snp.bottom).offset(8)
             make.leading.trailing.equalToSuperview().inset(8)
             make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(8)
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(8)
         }
     }
     
     func tbDataBinding(){
-        vm.decoderCallBack = { [weak self] oilStations in
-            guard let self = self
-                , let features = oilStations.features else { return }
-            let sortedFeatures = vm.sortFeaturesByDistance(features)
-            let distanceFeatures = vm.distanceFeatures(sortedFeatures, near: 10)
+        
+        if !isNearShown {
             
-            self.distanceFeatures = distanceFeatures
-            self.tbNearby.reloadData()
-        }
-        vm.recordLocation()
-        vm.locationCallBack = { [weak self] _ in
-            self?.vm.parserGeoJSONPoint()
+            let jsonDecoder = JSONDecoder()
+            let favoriteStations = MainManager.shared.getFavoriteStations()
+            //distanceFeatures = nil
+            guard !favoriteStations.isEmpty else { return }
+            distanceFeatures = favoriteStations.compactMap({ feature in
+                self.vm.distanceString(feature)
+            })
+            
+        } else {
+            
+            vm.decoderCallBack = { [weak self] oilStations in
+                guard let self = self
+                        , let features = oilStations.features else { return }
+                let sortedFeatures = vm.sortFeaturesByDistance(features)
+                let distanceFeatures = vm.distanceFeatures(sortedFeatures, near: 10)
+                
+                self.distanceFeatures = distanceFeatures
+                self.tbNearby.reloadData()
+            }
+            vm.recordLocation()
+            vm.locationCallBack = { [weak self] _ in
+                self?.vm.parserGeoJSONPoint()
+            }
         }
     }
     
@@ -110,6 +153,21 @@ extension NearVC: UITableViewDelegate, UITableViewDataSource{
 
             }
         }
+        cell.onFavoriteCallBack = { [weak self] success in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                if success {
+                    AlertControllerUtil.singleHintAlert(self, title: "收藏成功")
+                } else {
+                    AlertControllerUtil.singleHintAlert(self, title: "收藏失敗")
+                }
+            }
+        }
+        if !isNearShown {
+            cell.btnFavorite.isHidden = true
+            cell.btnFavoriteBackground.isHidden = true
+        }
+        
         return cell
     }
     
@@ -124,4 +182,36 @@ extension NearVC: UITableViewDelegate, UITableViewDataSource{
         self.navigationController?.pushViewController(detailVC, animated: true)
     }
     
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        
+        guard !isNearShown else { return nil }
+        let delectionAction = UIContextualAction(style: .destructive,
+                                                 title: "刪除") { [weak self] (action, view, completion) in
+            guard let self = self else { return }
+            
+            // 移除資料來源
+            self.distanceFeatures?.remove(at: indexPath.row)
+            
+            // 刪除 cell
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            let features = self.distanceFeatures?.compactMap({ $0.feature})
+            if let features = features {
+                let success = MainManager.shared.deleteCoverStations(features)
+                DispatchQueue.main.async {
+                    if success {
+                        AlertControllerUtil.singleHintAlert(self, title: "修改成功")
+                    } else {
+                        AlertControllerUtil.singleHintAlert(self, title: "修改失敗")
+                    }
+                }
+            }
+            
+            completion(true)
+        }
+        delectionAction.backgroundColor = .systemRed
+        let config = UISwipeActionsConfiguration(actions: [delectionAction])
+        config.performsFirstActionWithFullSwipe = false
+        return config
+    }
 }

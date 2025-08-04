@@ -92,7 +92,9 @@ extension NearStationDetailVC: UITableViewDataSource, UITableViewDelegate {
                 let service: [String] = [
                     properties.打氣機 == true ? "打氣機" : nil,
                     properties.洗車服務 == true ? "洗車服務" : nil,
-                    properties.車用尿素水 == true ? "車用尿素水" : nil
+                    properties.車用尿素水 == true ? "車用尿素水" : nil,
+                    properties.自助加油設備 == true ? "自助加油設備" : nil,
+                    properties.不斷電加油服務 == true ? "不斷電加油服務" : nil
                 ].compactMap { $0 }
             cell.detailTextLabel?.text = service.joined(separator: "、")
             cell.detailTextLabel?.numberOfLines = 0
@@ -109,6 +111,11 @@ extension NearStationDetailVC: UITableViewDataSource, UITableViewDelegate {
                     ,properties.悠遊付 == true ? "悠遊付" : nil
                     ,properties.悠遊卡 == true ? "悠遊卡" : nil
                     ,properties.愛金卡 == true ? "愛金卡" : nil
+                    ,properties.台塑石油APP == true ? "台塑石油APP" : nil
+                    ,properties.台塑聯名卡 == true ? "台塑聯名卡" : nil
+                    ,properties.台塑商務卡 == true ? "台塑商務卡" : nil
+                    ,properties.國民旅遊卡 == true ? "國民旅遊卡" : nil
+                    ,properties.Taxi卡 == true ? "Taxi卡" : nil
                 ].compactMap { $0 }
             cell.detailTextLabel?.text = pay.joined(separator: "、")
             cell.detailTextLabel?.numberOfLines = 0

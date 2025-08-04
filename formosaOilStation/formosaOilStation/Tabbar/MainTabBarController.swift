@@ -15,7 +15,7 @@ class MainTabBarController: UITabBarController {
         let homeVC = UINavigationController(rootViewController: MapVC())
         homeVC.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map"), tag: 0)
         
-        let favoriteVC = UINavigationController(rootViewController: UIViewController())
+        let favoriteVC = UINavigationController(rootViewController: NearVC(title: "Favorite Stations", isNearShown: false))
         favoriteVC.tabBarItem = UITabBarItem(title: "Favorite", image: UIImage(systemName: "heart.square"), tag: 1)
         
         let nearbyVC = UINavigationController(rootViewController: NearVC())

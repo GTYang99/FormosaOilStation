@@ -12,7 +12,10 @@ import MapKit
 class MainManager: NSObject,  CLLocationManagerDelegate {
     
     static let shared = MainManager()
-    private override init() {}
+    private override init() {
+        super.init()
+        self.checkFavoriteExiste()
+    }
     
     let locationManager = CLLocationManager()
     var currentLocation: CLLocation? {
@@ -21,6 +24,8 @@ class MainManager: NSObject,  CLLocationManagerDelegate {
         }
     }
     var locationUpdateHandler: ((CLLocation?) -> Void)?
+    let key = "favoriteStation"
+    let userDefaults = UserDefaults.standard
     
     func transICON(title: String) -> UIImage {
         if title.contains("全國") {
@@ -51,6 +56,48 @@ class MainManager: NSObject,  CLLocationManagerDelegate {
         let location = locations[locations.count - 1]
         currentLocation = location
         self.locationManager.stopUpdatingLocation()
+    }
+    
+    func checkFavoriteExiste() {
+        let rawData = [Feature]()
+        
+        if userDefaults.data(forKey: key) == nil {
+            if let encoded = try? JSONEncoder().encode(rawData) {
+                userDefaults.set(encoded, forKey: key)
+            }
+        }
+    }
+    
+    func getFavoriteStations() -> [Feature] {
+        guard let data = userDefaults.data(forKey: key),
+              let decoded = try? JSONDecoder().decode([Feature].self, from: data) else {
+            return []
+        }
+        return decoded
+    }
+    
+    func saveFavoriteStations(_ data: Feature) -> Bool {
+        var userDefault = getFavoriteStations()
+        
+        if userDefault.contains(where: { $0.properties?.站名 == data.properties?.站名 }) {
+            return false
+        }
+        userDefault.append(data)
+        if let encoder = try? JSONEncoder().encode(userDefault){
+            userDefaults.set(encoder, forKey: key)
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    func deleteCoverStations(_ datas: [Feature]) -> Bool {
+        if let encoder = try? JSONEncoder().encode(datas){
+            userDefaults.set(encoder, forKey: key)
+            return true
+        } else {
+            return false
+        }
     }
 }
 

@@ -39,9 +39,11 @@ struct Properties: Codable {
     let the98無鉛, the95Plus無鉛, the92無鉛, 超級柴油: Bool?
     let fuel98, fuel95, fuel92: Bool?
     let 洗車服務, 打氣機, 車用尿素水, 台塑石油Pay: Bool?
+    let 自助加油設備 ,不斷電加油服務: Bool?
     let 帝雉卡儲值, 國旅卡, 悠遊卡, 一卡通: Bool?
     let 愛金卡, pi拍錢包, 街口支付, linePay: Bool?
     let 悠遊付: Bool?
+    let 台塑石油APP, 台塑聯名卡, 台塑商務卡, 國民旅遊卡, Taxi卡: Bool?
 
     enum CodingKeys: String, CodingKey {
         case 城市, 站名, 地址, 電話, 營業時間, 類型
@@ -49,12 +51,14 @@ struct Properties: Codable {
         case the95Plus無鉛, fuel95 = "95Plus無鉛"
         case the92無鉛, fuel92 = "92無鉛"
         case 超級柴油, 洗車服務, 打氣機, 車用尿素水
+        case 自助加油設備 ,不斷電加油服務
         case 台塑石油Pay = "台塑石油PAY"
         case 帝雉卡儲值, 國旅卡, 悠遊卡, 一卡通, 愛金卡
         case pi拍錢包 = "Pi拍錢包"
         case 街口支付
         case linePay = "LINE Pay"
         case 悠遊付
+        case 台塑石油APP, 台塑聯名卡, 台塑商務卡, 國民旅遊卡, Taxi卡
     }
 }
 

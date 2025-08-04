@@ -12,6 +12,7 @@ import MapKit
 class NearStationCell: UITableViewCell {
     
     var onSelectStation: ((CLLocationCoordinate2D) -> Void)?
+    var onFavoriteCallBack: ((Bool) -> Void)?
     
     let img = UIImageView()
     let title : UILabel = {
@@ -64,7 +65,7 @@ class NearStationCell: UITableViewCell {
         let img = UIImage(systemName: "star.fill", withConfiguration: config)
         btn.setImage(img, for: .normal)
         btn.tintColor = .black
-        //btn.addTarget(self, action: #selector(tapLocationBtn), for: .touchUpInside)
+        btn.addTarget(self, action: #selector(tapFavoriteBtn), for: .touchUpInside)
         return btn
     }()
     
@@ -200,5 +201,10 @@ class NearStationCell: UITableViewCell {
         )
             
         onSelectStation?(coordinate)
+    }
+    @objc func tapFavoriteBtn(_ sender: UIButton) {
+        if let data = data {
+            onFavoriteCallBack?(MainManager.shared.saveFavoriteStations(data))
+        }
     }
 }

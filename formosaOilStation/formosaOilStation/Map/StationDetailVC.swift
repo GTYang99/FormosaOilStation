@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MapKit
 
 class StationDetailVC: UIViewController {
     
@@ -179,6 +180,14 @@ class StationDetailVC: UIViewController {
             make.top.equalTo(openInfoLabel.snp.bottom).offset(20)
             make.leading.trailing.equalToSuperview()
         }
+        let tapAdd = UITapGestureRecognizer(target: self, action: #selector(addToFavorites))
+        saveBtn.addGestureRecognizer(tapAdd)
+        
+        let tapShar = UITapGestureRecognizer(target: self, action: #selector(shareStation))
+        shareBtn.addGestureRecognizer(tapShar)
+
+        let tapDir = UITapGestureRecognizer(target: self, action: #selector(direction))
+        navigateBtn.addGestureRecognizer(tapDir)
     }
     
     func makeCircleButton(image: String, title: String) -> UIView {
@@ -222,6 +231,56 @@ class StationDetailVC: UIViewController {
         return container
     }
     
+    @objc private func addToFavorites() {
+        if let data = data {
+            let success = MainManager.shared.saveFavoriteStations(data)
+            DispatchQueue.main.async {
+                if success {
+                    AlertControllerUtil.singleHintAlert(self, title: "收藏成功")
+                } else {
+                    AlertControllerUtil.singleHintAlert(self, title: "收藏失敗")
+                }
+            }
+        }
+    }
+    
+    @objc private func direction() {
+        guard let coordinate = data?.coordinate else { return }
+        
+        let coordinate2D: CLLocationCoordinate2D = CLLocationCoordinate2D(
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude
+        )
+        
+        if let navVC = self.tabBarController?.viewControllers?[0] as? UINavigationController,
+           let mapVC = navVC.viewControllers.first as? MapVC {
+            mapVC.directionLocation = coordinate
+            mapVC.txOilStationTitle = data?.properties?.站名
+        }
+    }
+    
+    @objc private func shareStation() {
+        guard let station = data?.properties else { return }
+
+        var shareText = ""
+        if let name = station.站名 {
+            shareText += "加油站：\(name)\n"
+        }
+        if let address = station.地址 {
+            shareText += "地址：\(address)\n"
+        }
+        if let phone = station.電話 {
+            shareText += "電話：\(phone)"
+        }
+        
+        if let coordinate = data?.coordinate {
+            let googleMapsURL = "https://www.google.com/maps/search/?api=1&query=\(coordinate.latitude),\(coordinate.longitude)"
+            shareText += "\n📍 查看地圖：\(googleMapsURL)"
+        }
+        
+        let activityVC = UIActivityViewController(activityItems: [shareText], applicationActivities: nil)
+        present(activityVC, animated: true, completion: nil)
+    }
     
     
 

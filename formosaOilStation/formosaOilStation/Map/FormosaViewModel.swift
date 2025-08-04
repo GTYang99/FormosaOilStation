@@ -81,7 +81,7 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
         return sortedFeatures
     }
     
-    func distanceFeatures(_ features: [Feature], near km: Double) -> [FeatureWithDistance] {
+    func distanceFeatures(_ features: [Feature], near km: Double = 10.0) -> [FeatureWithDistance] {
         let nearKM = km * 1000
         let distanceFeatures = features.compactMap { feature -> FeatureWithDistance? in
             guard let coord = feature.coordinate,
@@ -203,7 +203,7 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
 }
 
 
-struct FeatureWithDistance {
+struct FeatureWithDistance: Codable {
     let feature: Feature
     let distance: Double
 }
