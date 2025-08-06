@@ -105,3 +105,10 @@ enum 加油站廠牌: String, Codable {
         }
     }
 }
+
+enum 油種: String, Codable {
+    case fuel98 = "98"
+    case fuel95 = "95"
+    case fuel92 = "92"
+    case fuel柴油 = "柴油"
+}

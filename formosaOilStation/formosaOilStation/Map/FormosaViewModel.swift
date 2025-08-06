@@ -7,12 +7,15 @@
 
 import Foundation
 import MapKit
+import SwiftSoup
 
 
 class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     var decoderCallBack: ((OilStations) -> Void)?
     var filterCallBack: (([FeatureWithDistance]) -> Void)?
     var locationCallBack: ((CLLocation) -> Void)?
+    var fuelPriceCallBack: (([油種: Double], String) -> Void)?
+    
     var dataJSON: OilStations?
     //var filterData: OilStations?
     //var nearData: OilStations?
@@ -198,6 +201,59 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
             DateManager.shared.stringToTime(from: String(timeArray[0])),
             DateManager.shared.stringToTime(from: String(timeArray[1]))
         )
+    }
+    
+    
+    func fetchOilNewsHTML() {
+        guard let url = URL(string: "https://www.fpcc.com.tw/tw/price") else { return }
+
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            if let data = data, let html = String(data: data, encoding: .utf8) {
+                self.parseHTML(html)
+            }
+        }
+
+        task.resume()
+    }
+
+    func parseHTML(_ html: String) {
+        do {
+            var resultDict = [油種: Double]()
+            var resultDate = ""
+            let doc: Document = try SwiftSoup.parse(html)
+            let blocks: Elements = try doc.select("div.price-block")
+            
+            for block in blocks {
+                let h3 = try block.select("h3").first()?.text() ?? ""
+                if h3.contains("加盟") {
+                    let prices = try block.select("div.gas-price div")
+                    let itemDate = try block.select("p").text().components(separatedBy: " ")
+                    let date = "\(itemDate[2])\(itemDate[3])"
+                    resultDate = date
+                    for price in prices {
+                        let fuel = try price.text()
+                        var fuelTitle: 油種?
+                        let item = fuel.components(separatedBy: " ").last ?? ""
+                        if item.contains("92") {
+                            fuelTitle = .fuel92
+                        } else if item.contains("95") {
+                            fuelTitle = .fuel95
+                        } else if item.contains("98") {
+                            fuelTitle = .fuel98
+                        } else if item.contains("柴油") {
+                            fuelTitle = .fuel柴油
+                        }
+                        let fuelPrice = Double(fuel.components(separatedBy: " ").first?.replacingOccurrences(of: "$", with: "") ?? "") ?? 0.0
+                        if let fuelTitle = fuelTitle{
+                            resultDict[fuelTitle] = fuelPrice
+                        }
+                    }
+                }
+            }
+            fuelPriceCallBack?(resultDict, resultDate)
+        } catch {
+            print("解析失敗：\(error)")
+        }
     }
     
 }

@@ -21,7 +21,7 @@ class MainTabBarController: UITabBarController {
         let nearbyVC = UINavigationController(rootViewController: NearVC())
         nearbyVC.tabBarItem = UITabBarItem(title: "Near", image: UIImage(systemName: "signpost.right.and.left"), tag: 1)
         
-        let searchVC = UINavigationController(rootViewController: UIViewController())
+        let searchVC = UINavigationController(rootViewController: PriceVC())
         searchVC.tabBarItem = UITabBarItem(title: "Price", image: UIImage(systemName: "network"), tag: 2)
         viewControllers = [homeVC, favoriteVC, nearbyVC, searchVC]
         

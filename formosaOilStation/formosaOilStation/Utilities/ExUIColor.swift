@@ -44,6 +44,10 @@ public extension UIColor {
     static var cBlue   = PSColor(.cBlue)
     static var cRed    = PSColor(.cRed)
     static var cGreen  = PSColor(.cGreen)
+    static var fuel98  = PSColor(.fuel98)
+    static var fuel95  = PSColor(.fuel95)
+    static var fuel92  = PSColor(.fuel92)
+    static var fuelDiesel  = PSColor(.fuelDiesel)
 }
 
 enum PSColor: String {
@@ -57,6 +61,10 @@ enum PSColor: String {
     case cBlue      = "#63B3ED"
     case cRed       = "#FC8181"
     case cGreen     = "#68D391"
+    case fuel98     = "#EF5B5B"
+    case fuel95     = "#FFBA49"
+    case fuel92     = "#5398BE"
+    case fuelDiesel  = "#A4A9AD"
 }
 
 extension PSColor {
