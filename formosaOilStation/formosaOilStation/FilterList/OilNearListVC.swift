@@ -271,7 +271,6 @@ class OilNearListVC: UIViewController {
     var filterBrands: [加油站廠牌] = []
     var filterFuelType: [String] = []
     var filterTime: [Date?] = [nil, nil]
-    var filterDistance: Double?
     var viewModel: FormosaViewModel?
     
     init(viewModel: FormosaViewModel) {
@@ -486,7 +485,11 @@ class OilNearListVC: UIViewController {
         let oneHourLater = DateManager.shared.timeToString(time: nowPlusOne)
         
         for button in btnTimes {
-            button.isSelected = (button == sender)
+            if button == sender, button.isSelected {
+                button.isSelected = false
+            } else {
+                button.isSelected = (button == sender)
+            }
         }
         filterTime = [nil, nil]
         switch sender {
@@ -512,7 +515,7 @@ class OilNearListVC: UIViewController {
     @objc func sliderbarDistanceValueChanged(_ slider: UISlider) {
         let value: Float = slider.value / 10
         lblDistanceValue.text = String(format: "%.1fkm", value)
-        filterDistance = Double(value)
+        viewModel?.filterDistance = Double(value)
     }
     
     func timeSelector(open: Bool) {
@@ -580,7 +583,7 @@ class OilNearListVC: UIViewController {
     }
     
     @objc private func didTapSearchBtn(){
-        viewModel?.filterCondition(brands: filterBrands, fuelType: filterFuelType, time: filterTime, distance: filterDistance ?? 10.0)
+        viewModel?.filterCondition(brands: filterBrands, fuelType: filterFuelType, time: filterTime, distance: viewModel?.filterDistance ?? 10.0)
         dismiss(animated: true)
     }
     

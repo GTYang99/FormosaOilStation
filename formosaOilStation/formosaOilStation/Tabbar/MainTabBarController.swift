@@ -12,17 +12,23 @@ class MainTabBarController: UITabBarController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let homeVC = UINavigationController(rootViewController: MapVC())
+        let sharedViewModel = FormosaViewModel()
+        
+        let vc = MapVC(viewModel: sharedViewModel)
+        let vc3 = NearVC(viewModel: sharedViewModel, title: "Favorite Stations", isNearShown: false)
+        let vc2 = NearVC(viewModel: sharedViewModel)
+        
+        let homeVC = UINavigationController(rootViewController: vc)
         homeVC.tabBarItem = UITabBarItem(title: "Map", image: UIImage(systemName: "map"), tag: 0)
         
-        let favoriteVC = UINavigationController(rootViewController: NearVC(title: "Favorite Stations", isNearShown: false))
+        let favoriteVC = UINavigationController(rootViewController: vc3)
         favoriteVC.tabBarItem = UITabBarItem(title: "Favorite", image: UIImage(systemName: "heart.square"), tag: 1)
         
-        let nearbyVC = UINavigationController(rootViewController: NearVC())
+        let nearbyVC = UINavigationController(rootViewController: vc2)
         nearbyVC.tabBarItem = UITabBarItem(title: "Near", image: UIImage(systemName: "signpost.right.and.left"), tag: 1)
         
         let searchVC = UINavigationController(rootViewController: PriceVC())
-        searchVC.tabBarItem = UITabBarItem(title: "Price", image: UIImage(systemName: "network"), tag: 2)
+        searchVC.tabBarItem = UITabBarItem(title: "Price", image: UIImage(systemName: "dollarsign.circle"), tag: 2)
         viewControllers = [homeVC, favoriteVC, nearbyVC, searchVC]
         
         

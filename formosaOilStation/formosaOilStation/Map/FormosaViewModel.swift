@@ -17,9 +17,11 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     var fuelPriceCallBack: (([油種: Double], String) -> Void)?
     
     var dataJSON: OilStations?
-    //var filterData: OilStations?
-    //var nearData: OilStations?
+    var filterData: OilStations?
+    var filterDistance: Double?
+    
     let locationManager = CLLocationManager()
+    
     var currentLocation: CLLocation? {
         didSet {
             MainManager.shared.currentLocation = currentLocation
@@ -188,6 +190,7 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
         
         guard let result = result else { return }
         let resultDistance = distanceFeatures(result, near: distance)
+        filterData = OilStations(type: "Feature", features: result)
         filterCallBack?(resultDistance)
     }
     

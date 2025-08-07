@@ -83,6 +83,9 @@ extension NearStationDetailVC: UITableViewDataSource, UITableViewDelegate {
                 properties.the92無鉛 == true ? "92" : nil,
                 properties.the95Plus無鉛 == true ? "95Plus" : nil,
                 properties.the98無鉛 == true ? "98" : nil,
+                properties.fuel92 == true ? "92" : nil,
+                properties.fuel95 == true ? "95Plus" : nil,
+                properties.fuel98 == true ? "98" : nil,
                 properties.超級柴油 == true ? "超級柴油" : nil
             ].compactMap { $0 }
             

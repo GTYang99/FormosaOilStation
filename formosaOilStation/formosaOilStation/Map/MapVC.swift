@@ -13,7 +13,7 @@ import SnapKit
 class MapVC: UIViewController {
     let mapView = MKMapView()
     let tabbar = UITabBarController()
-    let vm = FormosaViewModel()
+    let vm: FormosaViewModel
     var txOilStationTitle: String?
     var directionLocation: CLLocationCoordinate2D? {
         didSet{
@@ -69,8 +69,8 @@ class MapVC: UIViewController {
         let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
         let img = UIImage(systemName: "eraser.line.dashed", withConfiguration: config)
         btn.setImage(img, for: .normal)
-        btn.tintColor = .black
-//        btn.addTarget(self, action: #selector(tapNearListBtn), for: .touchUpInside)
+        btn.tintColor = .disRed
+        btn.addTarget(self, action: #selector(tapDisFilterBtn), for: .touchUpInside)
         return btn
     }()
     
@@ -85,7 +85,22 @@ class MapVC: UIViewController {
         return bg
     }()
     
-
+    var isHiddenDisFilterBtn: Bool = true {
+        didSet {
+            btnDisfilter.isHidden = isHiddenDisFilterBtn
+            btnDisfilterBackground.isHidden = isHiddenDisFilterBtn
+        }
+    }
+    
+    init(viewModel: FormosaViewModel) {
+        self.vm = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         mapView.register(PinMKAView.self, forAnnotationViewWithReuseIdentifier: PinMKAView.reuseID)
@@ -103,6 +118,7 @@ class MapVC: UIViewController {
             print(filterData)
             let filterFeatures = filterData.compactMap { $0.feature }
             self?.putStationMarker(filterFeatures)
+            self?.isHiddenDisFilterBtn = false
         }
     }
     
@@ -117,6 +133,8 @@ class MapVC: UIViewController {
         btnLocationBackground.addSubview(btnLocation)
         view.addSubview(btnNearListBackground)
         btnNearListBackground.addSubview(btnNearList)
+        view.addSubview(btnDisfilterBackground)
+        btnDisfilterBackground.addSubview(btnDisfilter)
         
         if CLLocationManager.authorizationStatus() == .authorizedWhenInUse ||
             CLLocationManager.authorizationStatus() == .authorizedAlways {
@@ -148,6 +166,17 @@ class MapVC: UIViewController {
             make.center.equalToSuperview()
         }
         
+        btnDisfilterBackground.snp.makeConstraints { make in
+            make.bottom.equalTo(btnNearListBackground.snp.top).offset(-8)
+            make.trailing.equalTo(view.safeAreaLayoutGuide.snp.trailing).inset(16)
+            make.height.width.equalTo(50)
+        }
+        
+        btnDisfilter.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
+        btnDisfilterBackground.isHidden = true
+        btnDisfilter.isHidden = true
     }
     
     private func loadingCurrentLoacation() {
@@ -196,6 +225,11 @@ class MapVC: UIViewController {
         present(listVC, animated: true, completion: nil)
     }
     
+    @objc func tapDisFilterBtn(){
+        vm.filterData = nil
+        putStationMarker()
+        isHiddenDisFilterBtn = true
+    }
 
     /*
     // MARK: - Navigation
@@ -213,7 +247,12 @@ extension MapVC: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         let visibleMapRect = mapView.visibleMapRect
-        putStationMarker()
+        if let filterData = vm.filterData {
+            let data = filterData.features
+            putStationMarker(data)
+        } else {
+            putStationMarker()
+        }
         let allAnnotations = mapView.annotations
         // 只保留畫面內的站點
         let filteredAnnotations = allAnnotations.filter { annotation in

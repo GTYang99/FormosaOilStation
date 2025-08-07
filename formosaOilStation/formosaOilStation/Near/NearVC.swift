@@ -11,7 +11,7 @@ import CoreLocation
 
 class NearVC: UIViewController {
     let tbNearby = UITableView()
-    let vm = FormosaViewModel()
+    let vm: FormosaViewModel
     var distanceFeatures: [FeatureWithDistance]? {
         didSet {
             DispatchQueue.main.async {
@@ -27,7 +27,8 @@ class NearVC: UIViewController {
     }()
     var isNearShown: Bool = true
     
-    init(title: String? = nil, isNearShown: Bool = true) {
+    init(viewModel: FormosaViewModel, title: String? = nil, isNearShown: Bool = true) {
+        self.vm = viewModel
         self.lbTitle.text = (title != nil) ? title : "Near Station"
         self.isNearShown = isNearShown
         super.init(nibName: nil, bundle: nil)
@@ -89,19 +90,23 @@ class NearVC: UIViewController {
             })
             
         } else {
-            
-            vm.decoderCallBack = { [weak self] oilStations in
-                guard let self = self
-                        , let features = oilStations.features else { return }
-                let sortedFeatures = vm.sortFeaturesByDistance(features)
-                let distanceFeatures = vm.distanceFeatures(sortedFeatures, near: 10)
-                
-                self.distanceFeatures = distanceFeatures
-                self.tbNearby.reloadData()
-            }
-            vm.recordLocation()
-            vm.locationCallBack = { [weak self] _ in
-                self?.vm.parserGeoJSONPoint()
+            if let filterData = vm.filterData {
+                guard let features = filterData.features else { return }
+                let distanceFilterFeatures = vm.distanceFeatures(features, near: vm.filterDistance ?? 10)
+                self.distanceFeatures = distanceFilterFeatures
+            } else {
+                vm.decoderCallBack = { [weak self] oilStations in
+                    guard let self = self
+                            , let features = oilStations.features else { return }
+                    let sortedFeatures = vm.sortFeaturesByDistance(features)
+                    let distanceFeatures = vm.distanceFeatures(sortedFeatures, near: 10)
+                    
+                    self.distanceFeatures = distanceFeatures
+                }
+                vm.recordLocation()
+                vm.locationCallBack = { [weak self] _ in
+                    self?.vm.parserGeoJSONPoint()
+                }
             }
         }
     }
