@@ -15,10 +15,12 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     var filterCallBack: (([FeatureWithDistance]) -> Void)?
     var locationCallBack: ((CLLocation) -> Void)?
     var fuelPriceCallBack: (([油種: Double], String) -> Void)?
+    var newsCallBack: (() -> Void)?
     
     var dataJSON: OilStations?
     var filterData: OilStations?
     var filterDistance: Double?
+    var newsData: [NewsResponse]?
     
     let locationManager = CLLocationManager()
     
@@ -207,19 +209,22 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     }
     
     
-    func fetchOilNewsHTML() {
-        guard let url = URL(string: "https://www.fpcc.com.tw/tw/price") else { return }
-
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+    func fetchMainHTML(_ api: ConnectAPI.ParserURL) {
+        let task = URLSession.shared.dataTask(with: api.url) { data, response, error in
             if let data = data, let html = String(data: data, encoding: .utf8) {
-                self.parseHTML(html)
+                switch api {
+                case .fuelPrice:
+                    self.parseFuelHTML(html)
+                case .news:
+                    self.parseNewsHTML(html)
+                }
             }
         }
 
         task.resume()
     }
 
-    func parseHTML(_ html: String) {
+    private func parseFuelHTML(_ html: String) {
         do {
             var resultDict = [油種: Double]()
             var resultDate = ""
@@ -259,6 +264,74 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
         }
     }
     
+    private func parseNewsHTML(_ html: String) {
+        var result = [NewsResponse]()
+        do {
+            let doc: Document = try SwiftSoup.parse(html)
+            let blocks: Elements = try doc.select("div.news-list")
+            
+            for block in blocks {
+                let items = try block.select("li")
+                for item in items {
+                    let date = try item.select("span").text()
+                    guard !date.contains("標題") else { continue }
+                    let title = try item.select("p").text()
+                    let urlString = try item.select("a").attr("href")
+                    //print("\(urlString),\(title),\(date)")
+                    var increase: Bool = false
+                    getIncreasePrice(form: urlString) { result in
+                        increase = result == "調降" ? false : true
+                    }
+                    let news = NewsResponse(title: title, date: date, url: urlString, increasePrice: increase)
+                    result.append(news)
+                }
+            }
+            newsData = result
+            newsCallBack?()
+            
+        } catch {
+            print("解析失敗：\(error)")
+        }
+    }
+    
+    private func getIncreasePrice(form text: String, completion: @escaping (String?) -> Void)  {
+        guard let url = URL(string: "\(MainAPI.mainURL)/\(text)") else { return completion(nil)}
+        
+        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+            
+            if let error = error {
+                print("❌ 請求失敗：\(error.localizedDescription)")
+                completion(nil)
+                return
+            }
+            
+            guard let data = data,
+                  let html = String(data: data, encoding: .utf8) else {
+                completion(nil)
+                return
+            }
+            
+            if let html = String(data: data, encoding: .utf8) {
+                
+                do {
+                    let doc: Document = try SwiftSoup.parse(html)
+                    let blocks: Elements = try doc.select("div.wrap")
+                    for block in blocks {
+                        let letter = try blocks.select("p").text()
+                        if letter.contains("調降"){
+                            completion("調降")
+                        } else {
+                            completion("調漲")
+                        }
+                    }
+                    
+                } catch {
+                    print("解析失敗：\(error)")
+                }
+            }
+        }
+        task.resume()
+    }
 }
 
 
