@@ -3,6 +3,11 @@ from re import I
 import requests
 import json
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # 讀取 .env 檔案
+
 
 def make_request(url) -> BeautifulSoup:
     """
@@ -164,7 +169,55 @@ def save_to_json(data, filename):
         json.dump(data, f, ensure_ascii=False, indent=4)
     print(f"資料已保存至 {filename}")
 
+
+
+def open_from_json(filename):
+    with open(filename, "r", encoding="utf-8") as f:
+        return json.load(f) 
+
+def get_place_id(geojson: dict, api_key: str):
+    """
+    依據 geojson 結構，對每個加油站地址查詢 Google Maps Geocoding API，取得 place_id。
+    回傳格式: 塞回原本的 geojson 中
+    """
+    results = {
+        "type": "FeatureCollection",
+        "features": []
+    }
+    for index, feature in enumerate(geojson.get("features", [])):
+        props = feature.get("properties", {})
+        name = props.get("站名", "")
+        address = props.get("地址", "")
+        if not address:
+            # results.append({"站名": name, "地址": address, "place_id": None})
+            props['place_id'] = None
+            continue
+        # 組成 components 參數
+        components = f"country:TW|address:{address}"
+        url = f"https://maps.googleapis.com/maps/api/geocode/json?components={components}&key={api_key}"
+        try:
+            response = requests.get(url)
+            data = response.json()
+            if data.get("status") == "OK" and data.get("results"):
+                place_id = data["results"][0]["place_id"]
+            else:
+                place_id = None
+        except Exception as e:
+            place_id = None
+        # results.append({"站名": name, "地址": address, "place_id": place_id})
+        props['place_id'] = place_id
+        feature = geojson["features"][index]
+        feature["properties"] = props
+        results["features"].append(feature)
+    return results
+
+
 def main():
+
+    key_path = os.getenv("GEOCODING_KEY")
+    # print(f"🔑 Test key path: {key_path}")
+
+    
     url = "https://www.fpcc.com.tw/tw/events/stations/"
     soup =  make_request(url)
     city_list, service_list, card_list = fetch_select_data(soup)
@@ -186,11 +239,15 @@ def main():
     # print(f'station_citys:{station_citys}')
 
     file = convert_to_geojson(table_citys, station_citys)
-    print(f'Stations:{file}')
+    # print(f'Stations:{file}')
     save_to_json(file, "fpccOilStation.geojson")
 
+    # geojson = open_from_json("fpccOilStation.geojson")
+    newGeoJSON = get_place_id(file, 'key_path')
+    # print(f"geojson:{newGeoJSON}")
+    save_to_json(newGeoJSON, "fpccOilStation_place_id.geojson")
+
     # print(f'Stations:{station_citys}')
-    
 
 if __name__ == "__main__":
     main()
