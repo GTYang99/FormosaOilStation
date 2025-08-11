@@ -9,7 +9,7 @@ import UIKit
 
 class PriceVC: UIViewController {
     
-    let lbTitle: UILabel = {
+    let lbPriceTitle: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 32)
         label.text = "牌價"
@@ -209,20 +209,33 @@ class PriceVC: UIViewController {
         return label
     }()
     
+    let lbNewsTitle: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 32)
+        label.text = "油價新聞"
+        return label
+    }()
+    
+    var scrollView = UIScrollView()
+    var contentView = UIView()
+    var tbNews = UITableView()
     
     var viewModel = FormosaViewModel()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         initUI()
+        initNews()
+        viewModel.fetchMainHTML(.news)
         // Do any additional setup after loading the view.
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        viewModel.fetchOilNewsHTML()
+        viewModel.fetchMainHTML(.fuelPrice)
     }
     
     func initUI() {
+        tbNews.register(NewsCell.self, forCellReuseIdentifier: NewsCell.reuseIdentifier)
         view.backgroundColor = .white
         
         view98.addSubview(img98)
@@ -241,21 +254,36 @@ class PriceVC: UIViewController {
         view95.addSubview(price95)
         view92.addSubview(price92)
         viewDiesel.addSubview(priceDiesel)
-        view.addSubview(lbTitle)
-        view.addSubview(view98)
-        view.addSubview(view95)
-        view.addSubview(view92)
-        view.addSubview(viewDiesel)
-        view.addSubview(lbTimeRange)
+
+        contentView.addSubview(lbPriceTitle)
+        contentView.addSubview(view98)
+        contentView.addSubview(view95)
+        contentView.addSubview(view92)
+        contentView.addSubview(viewDiesel)
+        contentView.addSubview(lbTimeRange)
+        contentView.addSubview(lbNewsTitle)
+        contentView.addSubview(tbNews)
         
+        scrollView.addSubview(contentView)
         
-        lbTitle.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).inset(8)
+        view.addSubview(scrollView)
+        // 這個是視口
+        scrollView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        // 這個是內容高度，推開在這
+        contentView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+            make.width.equalToSuperview()
+        }
+        
+        lbPriceTitle.snp.makeConstraints { make in
+            make.top.equalToSuperview().inset(8)
             make.leading.trailing.equalToSuperview().inset(16)
         }
         
         view98.snp.makeConstraints { make in
-            make.top.equalTo(lbTitle.snp.bottom).offset(20)
+            make.top.equalTo(lbPriceTitle.snp.bottom).offset(20)
             make.leading.trailing.equalToSuperview().inset(16)
         }
         img98.snp.makeConstraints { make in
@@ -347,6 +375,26 @@ class PriceVC: UIViewController {
             make.trailing.equalToSuperview().inset(16)
         }
         
+        lbNewsTitle.snp.makeConstraints { make in
+            make.top.equalTo(lbTimeRange.snp.bottom).offset(32)
+            make.leading.trailing.equalToSuperview().inset(16)
+        }
+        
+        tbNews.snp.makeConstraints { make in
+            make.top.equalTo(lbNewsTitle.snp.bottom).offset(8)
+            make.leading.trailing.equalToSuperview().inset(16)
+            make.bottom.equalToSuperview().inset(16)
+        }
+        
+    }
+    
+    func initNews() {
+        tbNews.delegate = self
+        tbNews.dataSource = self
+        tbNews.isScrollEnabled = false
+        tbNews.separatorStyle = .none
+        tbNews.estimatedRowHeight = 50
+        
         viewModel.fuelPriceCallBack = { [weak self] results, date in
             guard let self = self else { return }
             DispatchQueue.main.async {
@@ -367,6 +415,18 @@ class PriceVC: UIViewController {
                 }
             }
         }
+        viewModel.newsCallBack = { [weak self]  in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                self.tbNews.reloadData()
+                self.tbNews.snp.remakeConstraints { make in
+                    make.top.equalTo(self.lbNewsTitle.snp.bottom).offset(8)
+                    make.leading.trailing.equalToSuperview().inset(16)
+                    make.height.equalTo(self.tbNews.contentSize.height)
+                    make.bottom.equalToSuperview().inset(16)
+                }
+            }
+        }
     }
     
 
@@ -380,4 +440,41 @@ class PriceVC: UIViewController {
     }
     */
 
+}
+
+
+extension PriceVC: UITableViewDelegate, UITableViewDataSource  {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel.newsData?.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: NewsCell.reuseIdentifier) as? NewsCell else {
+            return UITableViewCell()
+        }
+        guard let data = viewModel.newsData?[indexPath.row]else {
+            return cell
+        }
+        let date = DateManager.shared.dateToString(from: data.date)
+        cell.configure(title: data.title, date: date, increase: data.increasePrice)
+        
+        /*
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: "normal")
+        let data = viewModel.newsData?[indexPath.row]
+        cell.textLabel?.text = data?.title
+        cell.detailTextLabel?.text = data?.date
+        cell.accessoryType = .disclosureIndicator
+        return cell
+         */
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let data = viewModel.newsData?[indexPath.row]
+        guard let url = data?.url else { return }
+        let vc = NewsVC(shows: url)
+        navigationController?.pushViewController(vc, animated: true)
+    }
+    
 }

@@ -112,3 +112,40 @@ enum 油種: String, Codable {
     case fuel92 = "92"
     case fuel柴油 = "柴油"
 }
+
+enum MainAPI {
+    private static let main = "https://www.fpcc.com.tw"
+
+    // get desire Link
+    static var mainURL: String {
+        main
+    }
+}
+
+struct ConnectAPI {
+    enum ParserURL {
+        case fuelPrice
+        case news
+        
+        var url: URL {
+            switch self {
+            case .fuelPrice:
+                return URL(string: "\(MainAPI.mainURL)/tw/price")!
+            case .news:
+                return URL(string: "\(MainAPI.mainURL)/tw/news/articles")!
+            }
+        }
+    }
+}
+
+
+struct NewsResponse: Codable {
+    let title: String
+    let date: Date
+    let url: String
+    let increasePrice: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case title, date, url, increasePrice
+    }
+}

@@ -29,10 +29,21 @@ class DateManager {
     
     
     func stringToTime(from timeString: String) -> Date? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        formatter.locale = Locale(identifier: "zh_TW")
-        formatter.timeZone = TimeZone.current
-        return formatter.date(from: timeString)
+        dateFormatter.dateFormat = "HH:mm"
+        dateFormatter.locale = Locale(identifier: "zh_TW")
+        dateFormatter.timeZone = TimeZone.current
+        return dateFormatter.date(from: timeString)
+    }
+    
+    func engStringToDate(from timeString: String) -> Date? {
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "MMM dd,yyyy"
+        return dateFormatter.date(from: timeString)
+    }
+    
+    func dateToString(from date: Date) -> String {
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "MM-dd"
+        return dateFormatter.string(from: date)
     }
 }

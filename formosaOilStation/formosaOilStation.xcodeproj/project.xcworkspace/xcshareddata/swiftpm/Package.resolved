@@ -1,5 +1,5 @@
 {
-  "originHash" : "cefa11367e068d83b0fbcadb6e041ed5f86a64afc1ba5519b75a1f2e52377e09",
+  "originHash" : "4b3a404e5d011c9613cc15ac1cd2895c56e29f8828ea1bd3f7e7d897969f0e7e",
   "pins" : [
     {
       "identity" : "alamofire",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "513364f870f6bfc468f9d2ff0a95caccc10044c5",
         "version" : "5.10.2"
+      }
+    },
+    {
+      "identity" : "ios-places-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/googlemaps/ios-places-sdk",
+      "state" : {
+        "revision" : "987497b1eb8a7bbce8cb1d86b2c7cd64d0302452",
+        "version" : "10.1.0"
       }
     },
     {

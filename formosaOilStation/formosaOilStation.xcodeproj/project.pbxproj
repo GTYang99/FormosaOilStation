@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		0C4B39C32E4303E300E5910C /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 0C4B39C22E4303E300E5910C /* SwiftSoup */; };
+		0C4B3A6A2E49925100E5910C /* GooglePlaces in Frameworks */ = {isa = PBXBuildFile; productRef = 0C4B3A692E49925100E5910C /* GooglePlaces */; };
+		0C4B3A6C2E49925100E5910C /* GooglePlacesSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 0C4B3A6B2E49925100E5910C /* GooglePlacesSwift */; };
 		0CFDA8442DAFA3A300D21BD2 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0CFDA8432DAFA3A300D21BD2 /* SnapKit */; };
 		0CFDA8472DAFA3AC00D21BD2 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 0CFDA8462DAFA3AC00D21BD2 /* Alamofire */; };
 /* End PBXBuildFile section */
@@ -43,6 +45,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				0CFDA8442DAFA3A300D21BD2 /* SnapKit in Frameworks */,
+				0C4B3A6C2E49925100E5910C /* GooglePlacesSwift in Frameworks */,
+				0C4B3A6A2E49925100E5910C /* GooglePlaces in Frameworks */,
 				0CFDA8472DAFA3AC00D21BD2 /* Alamofire in Frameworks */,
 				0C4B39C32E4303E300E5910C /* SwiftSoup in Frameworks */,
 			);
@@ -90,6 +94,8 @@
 				0CFDA8432DAFA3A300D21BD2 /* SnapKit */,
 				0CFDA8462DAFA3AC00D21BD2 /* Alamofire */,
 				0C4B39C22E4303E300E5910C /* SwiftSoup */,
+				0C4B3A692E49925100E5910C /* GooglePlaces */,
+				0C4B3A6B2E49925100E5910C /* GooglePlacesSwift */,
 			);
 			productName = formosaOilStation;
 			productReference = 0CFDA81C2DAF9B8000D21BD2 /* formosaOilStation.app */;
@@ -123,6 +129,7 @@
 				0CFDA8422DAFA3A300D21BD2 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				0CFDA8452DAFA3AC00D21BD2 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				0C4B39C12E4303E300E5910C /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				0C4B3A682E49925100E5910C /* XCRemoteSwiftPackageReference "ios-places-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0CFDA81D2DAF9B8000D21BD2 /* Products */;
@@ -366,6 +373,14 @@
 				minimumVersion = 2.10.0;
 			};
 		};
+		0C4B3A682E49925100E5910C /* XCRemoteSwiftPackageReference "ios-places-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-places-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.1.0;
+			};
+		};
 		0CFDA8422DAFA3A300D21BD2 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit";
@@ -389,6 +404,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0C4B39C12E4303E300E5910C /* XCRemoteSwiftPackageReference "SwiftSoup" */;
 			productName = SwiftSoup;
+		};
+		0C4B3A692E49925100E5910C /* GooglePlaces */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0C4B3A682E49925100E5910C /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			productName = GooglePlaces;
+		};
+		0C4B3A6B2E49925100E5910C /* GooglePlacesSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0C4B3A682E49925100E5910C /* XCRemoteSwiftPackageReference "ios-places-sdk" */;
+			productName = GooglePlacesSwift;
 		};
 		0CFDA8432DAFA3A300D21BD2 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
