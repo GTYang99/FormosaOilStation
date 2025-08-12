@@ -188,27 +188,35 @@ def get_place_id(geojson: dict, api_key: str):
         props = feature.get("properties", {})
         name = props.get("站名", "")
         address = props.get("地址", "")
+
+        # 複製原始 feature
+        new_feature = feature.copy()
+        new_props = props.copy()
+
         if not address:
             # results.append({"站名": name, "地址": address, "place_id": None})
             props['place_id'] = None
-            continue
-        # 組成 components 參數
-        components = f"country:TW|address:{address}"
-        url = f"https://maps.googleapis.com/maps/api/geocode/json?components={components}&key={api_key}"
-        try:
-            response = requests.get(url)
-            data = response.json()
-            if data.get("status") == "OK" and data.get("results"):
-                place_id = data["results"][0]["place_id"]
-            else:
+        
+        else:
+            # 組成 components 參數
+            components = f"country:TW|address:{address}"
+            url = f"https://maps.googleapis.com/maps/api/geocode/json?address={components}&key={api_key}"
+            try:
+                response = requests.get(url)
+                data = response.json()
+                if data.get("status") == "OK" and data.get("results"):
+                    place_id = data["results"][0]["place_id"]
+                else:
+                    place_id = None
+            except Exception as e:
                 place_id = None
-        except Exception as e:
-            place_id = None
-        # results.append({"站名": name, "地址": address, "place_id": place_id})
-        props['place_id'] = place_id
-        feature = geojson["features"][index]
-        feature["properties"] = props
-        results["features"].append(feature)
+                print(f"API 錯誤: {name} - {str(e)}")
+        new_props['place_id'] = place_id
+        new_feature["properties"] = new_props
+        results["features"].append(new_feature)
+
+        if index % 10 == 0:
+            print(f"處理進度: {index}/{len(geojson.get('features', []))}")
     return results
 
 
@@ -242,10 +250,16 @@ def main():
     # print(f'Stations:{file}')
     save_to_json(file, "fpccOilStation.geojson")
 
-    # geojson = open_from_json("fpccOilStation.geojson")
-    newGeoJSON = get_place_id(file, 'key_path')
-    # print(f"geojson:{newGeoJSON}")
+    geojson = open_from_json("fpccOilStation.geojson")
+    api_key = os.getenv("GEOCODING_KEY")  # 取得環境變數值
+
+    if not api_key:
+        print("❌ 找不到 GEOCODING_KEY 環境變數")
+        return
+        
+    newGeoJSON = get_place_id(geojson, api_key)
     save_to_json(newGeoJSON, "fpccOilStation_place_id.geojson")
+    print("✅ 完成！已儲存至 fpccOilStation_place_id.geojson")
 
     # print(f'Stations:{station_citys}')
 
