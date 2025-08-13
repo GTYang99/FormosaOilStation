@@ -8,6 +8,7 @@
 import Foundation
 import MapKit
 import SwiftSoup
+import GooglePlaces
 
 
 class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
@@ -23,6 +24,9 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     var newsData: [NewsResponse]?
     
     let locationManager = CLLocationManager()
+    let placesClient = GMSPlacesClient.shared()
+    var imageCallBack: ((UIImage) -> Void)?
+    var imageFetchError: (() -> Void)?
     
     var currentLocation: CLLocation? {
         didSet {
@@ -32,7 +36,7 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
     
     func parserGeoJSONPoint() -> [StagtionMKA]? {
         let extensionName: String = "geojson"
-        let fileName = "fpccOilStation"
+        let fileName = "fpccOilStation_place_id"
 
         var geoJson = [MKGeoJSONObject]()
         let mkGeojsonDecoder = MKGeoJSONDecoder()
@@ -340,6 +344,47 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
         }
         task.resume()
     }
+    /// Google places API for UIImage
+    func fetchStationPhoto(id: String) {
+        
+        //let id = "ChIJs5ydyTiuEmsR0fRSlU0C7k0"
+        placesClient.lookUpPlaceID(id) { (place, error) in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                return
+            }
+            guard let place = place else {
+                print("❌ 無效的 Place ID")
+                return
+            }
+            print("✅ 有效的 Place ID: \(place.name ?? "未知地點")")
+            
+            // 再去抓照片
+            self.placesClient.lookUpPhotos(forPlaceID: id) { (photos, error) in
+                if let error = error {
+                    print("Error fetching photo metadata: \(error)")
+                    return
+                }
+                guard let results = photos?.results, !results.isEmpty else {
+                    print("No photos available for this place.")
+                    return
+                }
+                
+                let photoMetadata = results[0]
+                let fetchPhotoRequest = GMSFetchPhotoRequest(photoMetadata: photoMetadata,
+                                                             maxSize: CGSize(width: 4800, height: 4800))
+                self.placesClient.fetchPhoto(with: fetchPhotoRequest) { (photoImage, error) in
+                    guard let photoImage, error == nil else {
+                        print("Handle photo error: \(error?.localizedDescription ?? "Unknown error")")
+                        return
+                    }
+                    print("Display photo Image: \(photoImage)")
+                    self.imageCallBack?(photoImage)
+                }
+            }
+        }
+    }
+    
 }
 
 

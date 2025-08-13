@@ -9,6 +9,7 @@ import UIKit
 import MapKit
 import CoreLocation
 import SnapKit
+import GoogleMobileAds
 
 class MapVC: UIViewController {
     let mapView = MKMapView()
@@ -92,6 +93,8 @@ class MapVC: UIViewController {
         }
     }
     
+    var bannerView = BannerView()
+    
     init(viewModel: FormosaViewModel) {
         self.vm = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -107,6 +110,7 @@ class MapVC: UIViewController {
         setupMapViewUI()
         mapView.delegate = self
         loadingCurrentLoacation()
+        setupAD()
         // Do any additional setup after loading the view.
     }
     
@@ -129,6 +133,7 @@ class MapVC: UIViewController {
     
     private func setupMapViewUI() {
         view.addSubview(mapView)
+        view.addSubview(bannerView)
         view.addSubview(btnLocationBackground)
         btnLocationBackground.addSubview(btnLocation)
         view.addSubview(btnNearListBackground)
@@ -146,8 +151,13 @@ class MapVC: UIViewController {
             make.leading.trailing.bottom.equalToSuperview()
         }
         
+        bannerView.snp.makeConstraints { make in
+            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom)
+            make.leading.trailing.equalToSuperview()
+        }
+        
         btnLocationBackground.snp.makeConstraints { make in
-            make.bottom.equalTo(view.safeAreaLayoutGuide.snp.bottom).inset(16)
+            make.bottom.equalTo(bannerView.snp.top).offset(-16)
             make.trailing.equalTo(view.safeAreaLayoutGuide.snp.trailing).inset(16)
             make.height.width.equalTo(50)
         }
@@ -177,6 +187,16 @@ class MapVC: UIViewController {
         }
         btnDisfilterBackground.isHidden = true
         btnDisfilter.isHidden = true
+        MobileAds.shared.start()
+        // Initialize the Google Mobile Ads SDK.
+        
+    }
+    
+    func setupAD() {
+        bannerView.delegate = self
+        bannerView.adSize = currentOrientationAnchoredAdaptiveBanner(width: 375)
+        bannerView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
+        bannerView.load(Request())
     }
     
     private func loadingCurrentLoacation() {
@@ -281,6 +301,16 @@ extension MapVC: MKMapViewDelegate {
         var view = mapView.dequeueReusableAnnotationView(withIdentifier: identifier) as? PinMKAView
         view?.tappedCallOut = { [weak self] stationInfo in
             let vc = StationDetailVC()
+            /*
+            self?.vm.imageCallBack = { [weak self] image in
+                DispatchQueue.main.async {
+                    vc.topImageView.image = image
+                }
+            }
+            if let id = stationInfo.properties?.place_id {
+                self?.vm.fetchStationPhoto(id: id)
+            }
+             */
             vc.configure(data: stationInfo)
             self?.navigationController?.pushViewController(vc, animated: true)
         }
@@ -294,4 +324,37 @@ extension MapVC: MKMapViewDelegate {
     }
     
     
+}
+
+extension MapVC: BannerViewDelegate {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        bannerView.alpha = 0
+        UIView.animate(withDuration: 1, animations: {
+            bannerView.alpha = 1
+        })
+    }
+
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+      print(#function + ": " + error.localizedDescription)
+    }
+
+    func bannerViewDidRecordClick(_ bannerView: BannerView) {
+      print(#function)
+    }
+
+    func bannerViewDidRecordImpression(_ bannerView: BannerView) {
+      print(#function)
+    }
+
+    func bannerViewWillPresentScreen(_ bannerView: BannerView) {
+      print(#function)
+    }
+
+    func bannerViewWillDismissScreen(_ bannerView: BannerView) {
+      print(#function)
+    }
+
+    func bannerViewDidDismissScreen(_ bannerView: BannerView) {
+      print(#function)
+    }
 }

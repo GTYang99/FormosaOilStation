@@ -40,9 +40,10 @@ class PinMKAView: MKAnnotationView {
     }
     
     private func setupUI() {
-        self.image = UIImage(systemName: "circle.fill")?.withTintColor(.systemGray, renderingMode: .alwaysTemplate)
+//        self.image = UIImage(systemName: "circle.fill")?.withTintColor(.systemGray, renderingMode: .alwaysTemplate)
+        self.image = UIImage(named: "stationPin2")?.withTintColor(.systemGray, renderingMode: .alwaysTemplate)
         self.centerOffset = CGPoint(x: 0, y: -20)
-        self.frame = CGRect(x: 0, y: 0, width: 6, height: 6)
+        self.frame = CGRect(x: 0, y: 0, width: 32, height: 32)
         
         calloutView.backgroundColor = .white
         calloutView.layer.cornerRadius = 8

@@ -6,14 +6,23 @@
 //
 
 import UIKit
+import GooglePlaces
+import GoogleMobileAds
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        AppOpenAdManager.shared.showAdIfAvailable()
+    }
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        if let key = Bundle.main.object(forInfoDictionaryKey: "GooglePlacesAPIKey") as? String {
+            GMSPlacesClient.provideAPIKey(key)
+        }
+        MobileAds.shared.start(completionHandler: nil)
         return true
     }
 

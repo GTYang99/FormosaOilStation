@@ -44,6 +44,7 @@ struct Properties: Codable {
     let 愛金卡, pi拍錢包, 街口支付, linePay: Bool?
     let 悠遊付: Bool?
     let 台塑石油APP, 台塑聯名卡, 台塑商務卡, 國民旅遊卡, Taxi卡: Bool?
+    let place_id: String?
 
     enum CodingKeys: String, CodingKey {
         case 城市, 站名, 地址, 電話, 營業時間, 類型
@@ -59,6 +60,7 @@ struct Properties: Codable {
         case linePay = "LINE Pay"
         case 悠遊付
         case 台塑石油APP, 台塑聯名卡, 台塑商務卡, 國民旅遊卡, Taxi卡
+        case place_id
     }
 }
 
