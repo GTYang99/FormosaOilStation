@@ -8,6 +8,6 @@
 // Configuration settings file format documentation can be found at:
 // https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
 
-googlePlacesAPIKey  = "AIzaSyDzlDy7L1nnBOTkWEWo0Jf_Gl-gA6G5rwI"
+googlePlacesAPIKey  = AIzaSyDzlDy7L1nnBOTkWEWo0Jf_Gl-gA6G5rwI
 
-googleAdmobKey      = "ca-app-pub-6890978330037928~9389071441"
+googleAdmobKey      = ca-app-pub-6890978330037928~9389071441
