@@ -196,7 +196,8 @@ class FormosaViewModel: NSObject,  CLLocationManagerDelegate {
         
         guard let result = result else { return }
         let resultDistance = distanceFeatures(result, near: distance)
-        filterData = OilStations(type: "Feature", features: result)
+        let resultDistanceFeatures = resultDistance.map { $0.feature }
+        filterData = OilStations(type: "Feature", features: resultDistanceFeatures)
         filterCallBack?(resultDistance)
     }
     

@@ -119,7 +119,6 @@ class MapVC: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: false)
         vm.filterCallBack = { [weak self] filterData in
             guard let annotationsToRemove = self?.mapView.annotations else { return }
-            print(filterData)
             let filterFeatures = filterData.compactMap { $0.feature }
             self?.putStationMarker(filterFeatures)
             self?.isHiddenDisFilterBtn = false
@@ -267,10 +266,11 @@ extension MapVC: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         let visibleMapRect = mapView.visibleMapRect
-        if let filterData = vm.filterData {
+        if let filterData = vm.filterData, !btnDisfilter.isHidden{
             let data = filterData.features
             putStationMarker(data)
-        } else {
+        }
+        if btnDisfilter.isHidden {
             putStationMarker()
         }
         let allAnnotations = mapView.annotations
